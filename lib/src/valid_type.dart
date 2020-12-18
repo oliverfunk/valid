@@ -17,12 +17,12 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
   ValidType.initial(
     V initialValue, [
     Validator<V>? validator,
-  ])  : assert(V != dynamic, "The value type <V> cannot be dynamic"),
+  ])  : assert(V != dynamic, 'The value type <V> cannot be dynamic'),
         _validator = validator,
         _initialModel = null {
     if (!validate(initialValue)) {
       logException(ValidationException(T, initialValue));
-      throw ModelInitialValidationError(T, initialValue);
+      throw InitialValidationError(T, initialValue);
     }
   }
 
@@ -38,6 +38,9 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
 
   @nonVirtual
   bool validate(V toValidate) => _validator == null || _validator!(toValidate);
+
+  @nonVirtual
+  T reset() => initial;
 
   @nonVirtual
   T next(V nextValue) {

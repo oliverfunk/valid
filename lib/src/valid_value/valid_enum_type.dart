@@ -17,12 +17,14 @@ List<String> convertEnumList<E>(List<E> enumValues) =>
 /// Returns the enum in [enumValues] corresponding to [enumString],
 /// else returns `null`.
 E? fromString<E>(List<E> enumValues, String enumString) {
-  E? returnEnum = null;
+  E? returnEnum;
   try {
     returnEnum = enumValues.firstWhere(
       (en) => enumString == convertEnum<E>(en),
     );
-  } on StateError {}
+  } on StateError {
+    ;
+  }
   return returnEnum;
 }
 
@@ -50,18 +52,18 @@ abstract class ValidEnumType<T extends ValidEnumType<T, E>, E>
     E initialEnum,
   )   : assert(
           enumValues.isNotEmpty,
-          "enumValues cannot be empty, use the static .values getter method on the enum class.",
+          'enumValues cannot be empty, use the static .values getter method on the enum class.',
         ),
         assert(
           E != dynamic && E != Object,
-          "The enum type <E> cannot be dynamic",
+          'The enum type <E> cannot be dynamic',
         ),
         assert(
           enumValues.every((e) {
             convertEnum(e);
             return true;
           }),
-          "<E> not an enum",
+          '<E> not an enum',
         ),
         _enums = enumValues,
         super.initial(initialEnum, (e) => enumValues.contains(e));

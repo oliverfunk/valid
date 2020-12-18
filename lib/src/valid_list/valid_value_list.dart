@@ -4,9 +4,9 @@ import 'valid_value_list_type.dart';
 class ValidValueList<T extends ValidValueType<T, dynamic>>
     extends ValidValueListType<ValidValueList<T>, T> {
   ValidValueList(
-    T validModel,
-    List initialValidValues,
-  ) : super.initial(validModel, initialValidValues);
+    T validModel, [
+    List initialValidValues = const [],
+  ]) : super.initial(validModel, initialValidValues);
 
   ValidValueList.numberOf(
     T validModel,

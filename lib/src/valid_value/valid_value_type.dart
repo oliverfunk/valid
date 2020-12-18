@@ -6,14 +6,8 @@ abstract class ValidValueType<T extends ValidValueType<T, V>, V>
   final V _current;
 
   ValidValueType.initial(V initialValue, [Validator<V>? validator])
-      : _current = initialValue,
-        super.initial(initialValue, validator);
-
-  ValidValueType.initialPrimitive(V initialValue, [Validator<V>? validator])
-      : assert(
-          [bool, int, double, String, DateTime].contains(V),
-          'The value type <V> must be one of: [bool, int, double, String, DateTime], received <$V>',
-        ),
+      : assert(V != List, 'Use the ValidListType class'),
+        assert(V != Map, 'Use the ValidMapType class'),
         _current = initialValue,
         super.initial(initialValue, validator);
 

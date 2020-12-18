@@ -25,5 +25,8 @@ abstract class ValidValueListType<T extends ValidValueListType<T, M>,
       : validModel = previous.validModel,
         super.constructNext(previous, nextList);
 
+  T nextWithValues(List nextValues) =>
+      next(nextValues.map((i) => validModel.next(i)).toList());
+
   V valueAt<V>(int index) => internalList[index].value as V;
 }

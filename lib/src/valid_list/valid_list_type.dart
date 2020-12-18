@@ -1,187 +1,162 @@
 import 'package:meta/meta.dart';
-import 'package:valid/src/utils/loggers.dart';
 
-import '../cow_types/copy_on_write_list.dart';
-import '../exceptions.dart';
-import '../typedefs.dart';
 import '../valid_type.dart';
+import '../typedefs.dart';
+import '../cow_types/copy_on_write_list.dart';
 
 abstract class ValidListType<T extends ValidListType<T, V>, V>
     extends ValidType<T, List<V>> implements Iterable<V> {
-  final List<V> _list;
+  final List<V> _currentList;
 
-  ValidListType.initial(this._list, [Validator<List<V>>? validator])
-      : super.initial(_list, validator);
+  ValidListType.initial(
+    this._currentList, [
+    Validator<List<V>>? listValidator,
+  ])  : assert(
+          V != dynamic && V != Object,
+          'The list value type <V> cannot be dynamic',
+        ),
+        super.initial(_currentList, listValidator);
 
-  ValidListType.constructNext(T previous, this._list)
+  ValidListType.constructNext(T previous, this._currentList)
       : super.fromPrevious(previous);
 
   @override
-  List<V> get value => CopyOnWriteList(_list);
+  List<V> get value => CopyOnWriteList(_currentList);
 
   /// If [nextList] is not element-wise equal to the current list,
   /// this will return `true`.
   @override
   bool shouldBuild(List<V> nextList) {
-    if (identical(_list, nextList)) return false;
-    if (_list.length != nextList.length) return true;
-    for (var i = 0; i < _list.length; i++) {
-      if (_list[i] != nextList[i]) return true;
+    if (identical(_currentList, nextList)) return false;
+    if (_currentList.length != nextList.length) return true;
+    for (var i = 0; i < _currentList.length; i++) {
+      if (_currentList[i] != nextList[i]) return true;
     }
     return false;
   }
 
-  // todo: is there a more efficient way rather than allocating a new list instance
+  //todo:
   @override
-  get props => [List.unmodifiable(_list)];
+  List<List<V>> get props => [List.unmodifiable(_currentList)];
 
   @protected
-  List<V> get internalList => _list;
-
-  // some list methods
-
-  // non-mutating
-
-  V operator [](int index) => _list[index];
-
-  int indexOf(V element, [int start = 0]) => _list.indexOf(element, start);
-
-  int indexWhere(bool Function(V) test, [int start = 0]) =>
-      _list.indexWhere(test, start);
-
-  // mutating methods as immutable, optimized
-
-  T add(V item) {
-    if (!validate([item])) {
-      logException(ValidationException(T, item));
-      return this as T;
-    }
-    return buildNext(value..add(item));
-  }
-
-  T addAll(Iterable<V> iterable) {
-    if (!validate(iterable.toList())) {
-      logException(ValidationException(T, iterable));
-      return this as T;
-    }
-    return buildNext(value..addAll(iterable));
-  }
-
-  T sort([int Function(V, V)? compare]) => buildNext(value..sort(compare));
+  List<V> get internalList => _currentList;
 
   /// Removes all elements from this list.
   ///
   /// As [List.clear].
-  T clear() => buildNext(<V>[]);
+  T clear() => next(<V>[]);
 
-  T replaceAt(int index, V updater(V current)) {
-    final update = updater(internalList[index]);
-    if (!validate([update])) {
-      logException(ValidationException(T, update));
-      return this as T;
-    }
+  /// Replaces the element at [index] with the result of calling [updater] on it.
+  T replaceAt(int index, V Function(V current) updater) {
     final l = value;
+    final update = updater(l[index]);
     l[index] = update;
-    return buildNext(l);
+    return next(l);
   }
 
-  T removeAt(int index) => buildNext(value..removeAt(index));
+  V operator [](int index) => _currentList[index];
 
-  T removeLast() => buildNext(value..removeLast());
+  int indexOf(V element, [int start = 0]) =>
+      _currentList.indexOf(element, start);
+
+  int indexWhere(bool Function(V) test, [int start = 0]) =>
+      _currentList.indexWhere(test, start);
 
   // Iterable<V> interface implementation
 
   @override
-  int get length => _list.length;
+  int get length => _currentList.length;
 
   @override
-  bool any(bool Function(V) test) => _list.any(test);
+  bool any(bool Function(V) test) => _currentList.any(test);
 
   @override
-  List<R> cast<R>() => _list.cast<R>();
+  List<R> cast<R>() => _currentList.cast<R>();
 
   @override
-  bool contains(Object? element) => _list.contains(element);
+  bool contains(Object? element) => _currentList.contains(element);
 
   @override
-  V elementAt(int index) => _list.elementAt(index);
+  V elementAt(int index) => _currentList.elementAt(index);
 
   @override
-  bool every(bool Function(V) test) => _list.every(test);
+  bool every(bool Function(V) test) => _currentList.every(test);
 
   @override
-  Iterable<T> expand<T>(Iterable<T> Function(V) f) => _list.expand(f);
+  Iterable<R> expand<R>(Iterable<R> Function(V) f) => _currentList.expand(f);
 
   @override
-  V get first => _list.first;
+  V get first => _currentList.first;
 
   @override
   V firstWhere(bool Function(V) test, {V Function()? orElse}) =>
-      _list.firstWhere(test, orElse: orElse);
+      _currentList.firstWhere(test, orElse: orElse);
 
   @override
-  T fold<T>(T initialValue, T Function(T, V) combine) =>
-      _list.fold(initialValue, combine);
+  R fold<R>(R initialValue, R Function(R, V) combine) =>
+      _currentList.fold(initialValue, combine);
 
   @override
-  Iterable<V> followedBy(Iterable<V> other) => _list.followedBy(other);
+  Iterable<V> followedBy(Iterable<V> other) => _currentList.followedBy(other);
 
   @override
-  void forEach(void Function(V) f) => _list.forEach(f);
+  void forEach(void Function(V) f) => _currentList.forEach(f);
 
   @override
-  bool get isEmpty => _list.isEmpty;
+  bool get isEmpty => _currentList.isEmpty;
 
   @override
-  bool get isNotEmpty => _list.isNotEmpty;
+  bool get isNotEmpty => _currentList.isNotEmpty;
 
   @override
-  Iterator<V> get iterator => _list.iterator;
+  Iterator<V> get iterator => _currentList.iterator;
 
   @override
-  String join([String separator = '']) => _list.join(separator);
+  String join([String separator = '']) => _currentList.join(separator);
 
   @override
-  V get last => _list.last;
+  V get last => _currentList.last;
 
   @override
   V lastWhere(bool Function(V) test, {V Function()? orElse}) =>
-      _list.lastWhere(test, orElse: orElse);
+      _currentList.lastWhere(test, orElse: orElse);
 
   @override
-  Iterable<T> map<T>(T Function(V) f) => _list.map(f);
+  Iterable<R> map<R>(R Function(V) f) => _currentList.map(f);
 
   @override
-  V reduce(V Function(V, V) combine) => _list.reduce(combine);
+  V reduce(V Function(V, V) combine) => _currentList.reduce(combine);
 
   @override
-  V get single => _list.single;
+  V get single => _currentList.single;
 
   @override
   V singleWhere(bool Function(V) test, {V Function()? orElse}) =>
-      _list.singleWhere(test, orElse: orElse);
+      _currentList.singleWhere(test, orElse: orElse);
 
   @override
-  Iterable<V> skip(int count) => _list.skip(count);
+  Iterable<V> skip(int count) => _currentList.skip(count);
 
   @override
-  Iterable<V> skipWhile(bool Function(V) test) => _list.skipWhile(test);
+  Iterable<V> skipWhile(bool Function(V) test) => _currentList.skipWhile(test);
 
   @override
-  Iterable<V> take(int count) => _list.take(count);
+  Iterable<V> take(int count) => _currentList.take(count);
 
   @override
-  Iterable<V> takeWhile(bool Function(V) test) => _list.takeWhile(test);
+  Iterable<V> takeWhile(bool Function(V) test) => _currentList.takeWhile(test);
 
   @override
-  List<V> toList({bool growable = true}) => _list.toList(growable: growable);
+  List<V> toList({bool growable = true}) =>
+      _currentList.toList(growable: growable);
 
   @override
-  Set<V> toSet() => _list.toSet();
+  Set<V> toSet() => _currentList.toSet();
 
   @override
-  Iterable<V> where(bool Function(V) test) => _list.where(test);
+  Iterable<V> where(bool Function(V) test) => _currentList.where(test);
 
   @override
-  Iterable<T> whereType<T>() => _list.whereType<T>();
+  Iterable<R> whereType<R>() => _currentList.whereType<R>();
 }
