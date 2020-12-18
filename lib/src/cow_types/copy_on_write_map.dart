@@ -1,4 +1,5 @@
-// Copyright (c) 2015, Google Inc. Use of this source code is governed by a BSD-style
+// Copyright (c) 2015, Google Inc. Please see the AUTHORS file for details.
+// All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
 typedef _MapFactory<K, V> = Map<K, V> Function();
