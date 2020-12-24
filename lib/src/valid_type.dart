@@ -4,24 +4,24 @@ import 'package:meta/meta.dart';
 import 'errors.dart';
 import 'exceptions.dart';
 import 'typedefs.dart';
-import 'utils/loggers.dart';
+import 'utils/valid_logger.dart';
 
 @immutable
 abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
-  V get value;
+  V? get value;
 
   final Validator<V>? _validator;
 
   final T? _initialModel;
 
   ValidType.initial(
-    V initialValue, [
+    V? initialValue, {
     Validator<V>? validator,
-  ])  : assert(V != dynamic, 'The value type <V> cannot be dynamic'),
+  })  : assert(V != dynamic, 'The value type <V> cannot be dynamic'),
         _validator = validator,
         _initialModel = null {
-    if (!validate(initialValue)) {
-      logException(ValidationException(T, initialValue));
+    if (initialValue != null && !validate(initialValue)) {
+      ValidLogger.logException(ValidationException(T, initialValue));
       throw InitialValidationError(T, initialValue);
     }
   }
@@ -46,20 +46,37 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
   T next(V nextValue) {
     if (!shouldBuild(nextValue)) return this as T;
     if (!validate(nextValue)) {
-      logException(ValidationException(T, nextValue));
+      ValidLogger.logException(ValidationException(T, nextValue));
       return this as T;
     }
     return buildNext(nextValue);
   }
 
   @nonVirtual
-  T nextWithFunc(ValueUpdater<V> updater) => next(updater(value));
+  T nextWithFunc(ValueUpdater<V> updater) {
+    if (value == null) throw NullValueError();
+    return next(updater(value!));
+  }
 
   @nonVirtual
   T nextFromOther(T other) {
+    if (other.value == null) throw NullValueError();
+    if (!shouldBuild(other.value!)) return this as T;
     if (!hasEqualityOfHistory(other)) throw EqualityOfHistoryError(this, other);
-
     return buildFromOther(other);
+  }
+
+  @nonVirtual
+  T call(dynamic update) {
+    if (update == null) return this as T;
+    if (update is T) {
+      return nextFromOther(update);
+    } else if (update is ValueUpdater<V>) {
+      return nextWithFunc(update);
+    } else if (update is V) {
+      return next(update);
+    }
+    throw UpdateError(T, V, update);
   }
 
   /// [nextValue] must be valid.
@@ -74,14 +91,8 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
   bool hasEqualityOfHistory(T other) => identical(initial, other.initial);
 
   @override
-  List<V> get props => [value];
-
-  @nonVirtual
-  Type get modelType => T;
-
-  @nonVirtual
-  Type get valueType => V;
+  List<Object?> get props => [value];
 
   @override
-  String toString() => '$modelType($value)';
+  String toString() => '$T($value)';
 }

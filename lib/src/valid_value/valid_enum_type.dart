@@ -1,5 +1,5 @@
-import '../errors.dart';
 import 'valid_value_type.dart';
+import '../errors.dart';
 
 /// Returns [enumValue] as a [String].
 ///
@@ -48,9 +48,9 @@ abstract class ValidEnumType<T extends ValidEnumType<T, E>, E>
   final List<E> _enums;
 
   ValidEnumType.initial(
-    List<E> enumValues,
-    E initialEnum,
-  )   : assert(
+    E initialEnum, {
+    required List<E> enumValues,
+  })   : assert(
           enumValues.isNotEmpty,
           'enumValues cannot be empty, use the static .values getter method on the enum class.',
         ),
@@ -66,11 +66,18 @@ abstract class ValidEnumType<T extends ValidEnumType<T, E>, E>
           '<E> not an enum',
         ),
         _enums = enumValues,
-        super.initial(initialEnum, (e) => enumValues.contains(e));
+        super.initial(
+          initialEnum,
+          validator: (e) => enumValues.contains(e),
+        );
 
   ValidEnumType.constructNext(T previous, E nextEnum)
       : _enums = previous._enums,
         super.constructNext(previous, nextEnum);
+
+  @override
+  // an enum's value can't be null
+  E get value => super.value!;
 
   T nextWithString(String nextString) {
     final en = fromString<E>(_enums, nextString);

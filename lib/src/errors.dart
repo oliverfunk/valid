@@ -40,8 +40,23 @@ class EqualityOfHistoryError extends Error {
   EqualityOfHistoryError(this.thisModel, this.receivedModel);
 
   @override
-  String toString() => 'ModelHistoryEqualityError\n'
-      'The models have no shared history.\n'
+  String toString() =>
+      'EqualityOfHistoryError: The models have no shared history.\n'
       ' This model:     $thisModel\n'
       ' Received model: $receivedModel';
+}
+
+class NullValueError extends Error {}
+
+class UpdateError extends Error {
+  final Type forValidType;
+  final Type valueType;
+  final dynamic receivedUpdate;
+
+  UpdateError(this.forValidType, this.valueType, this.receivedUpdate);
+
+  @override
+  String toString() =>
+      'UpdateError: The update type must one of: [$forValidType, ($valueType) => $valueType, $valueType]'
+      '\n Received: $receivedUpdate';
 }

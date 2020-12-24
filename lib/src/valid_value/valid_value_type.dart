@@ -1,21 +1,28 @@
-import 'package:valid/src/typedefs.dart';
-import 'package:valid/src/valid_type.dart';
+import 'package:meta/meta.dart';
+
+import '../typedefs.dart';
+import '../valid_type.dart';
 
 abstract class ValidValueType<T extends ValidValueType<T, V>, V>
     extends ValidType<T, V> {
-  final V _current;
+  final V? _current;
 
-  ValidValueType.initial(V initialValue, [Validator<V>? validator])
-      : assert(V != List, 'Use the ValidListType class'),
+  ValidValueType.initial(
+    V? initialValue, {
+    Validator<V>? validator,
+  })  : assert(V != List, 'Use the ValidListType class'),
         assert(V != Map, 'Use the ValidMapType class'),
         _current = initialValue,
-        super.initial(initialValue, validator);
+        super.initial(
+          initialValue,
+          validator: validator,
+        );
 
   ValidValueType.constructNext(T previous, this._current)
       : super.fromPrevious(previous);
 
   @override
-  V get value => _current;
+  V? get value => _current;
 }
 
 /// A mixin that provides the relevant overrides when defining a value type class that wraps its own validation.
@@ -27,9 +34,10 @@ abstract class ValidValueType<T extends ValidValueType<T, V>, V>
 /// therefore all instances of it will hold an equally valid value and thus all "share a history" in an abstract sense.
 mixin ValueType<T extends ValidValueType<T, V>, V> on ValidValueType<T, V> {
   @override
-  T buildFromOther(T previous) => identical(initial, previous.initial)
-      ? previous
-      : buildNext(previous.value);
+  @protected
+  T buildFromOther(T nextModel) => identical(initial, nextModel.initial)
+      ? nextModel
+      : buildNext(nextModel.value!);
 
   // todo: how to parameterize
   @override

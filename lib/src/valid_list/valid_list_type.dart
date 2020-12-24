@@ -8,14 +8,19 @@ abstract class ValidListType<T extends ValidListType<T, V>, V>
     extends ValidType<T, List<V>> implements Iterable<V> {
   final List<V> _currentList;
 
+  /// An [initialList] must be provided. It can be an empty list.
   ValidListType.initial(
-    this._currentList, [
-    Validator<List<V>>? listValidator,
-  ])  : assert(
+    List<V> initialList, {
+    Validator<List<V>>? validator,
+  })  : assert(
           V != dynamic && V != Object,
-          'The list value type <V> cannot be dynamic',
+          'The list value type <V> cannot be dynamic, it must be set explicitly',
         ),
-        super.initial(_currentList, listValidator);
+        _currentList = initialList,
+        super.initial(
+          initialList,
+          validator: validator,
+        );
 
   ValidListType.constructNext(T previous, this._currentList)
       : super.fromPrevious(previous);
@@ -23,8 +28,8 @@ abstract class ValidListType<T extends ValidListType<T, V>, V>
   @override
   List<V> get value => CopyOnWriteList(_currentList);
 
-  /// If [nextList] is not element-wise equal to the current list,
-  /// this will return `true`.
+  /// If [nextList] is element-wise equal to the current list,
+  /// and if it is not, this will return `true` and `false` if it is.
   @override
   bool shouldBuild(List<V> nextList) {
     if (identical(_currentList, nextList)) return false;

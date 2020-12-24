@@ -1,22 +1,30 @@
-import '../valid_value/valid_value_type.dart';
-import 'valid_value_list_type.dart';
+import 'package:meta/meta.dart';
 
-class ValidValueList<T extends ValidValueType<T, dynamic>>
-    extends ValidValueListType<ValidValueList<T>, T> {
+import 'valid_value_list_type.dart';
+import '../valid_value/valid_value_type.dart';
+
+class ValidValueList<V> extends ValidValueListType<ValidValueList<V>, V> {
   ValidValueList(
-    T validModel, [
-    List initialValidValues = const [],
-  ]) : super.initial(validModel, initialValidValues);
+    List<V> initialValues, {
+    required ValidValueType validator,
+  }) : super.initial(
+          initialValues,
+          validator: validator,
+        );
 
   ValidValueList.numberOf(
-    T validModel,
-    int numberOf,
-  ) : super.initialNumberOf(validModel, numberOf);
+    int numberOf, {
+    required ValidValueType validator,
+  }) : super.initialNumberOf(
+          numberOf,
+          validator: validator,
+        );
 
-  ValidValueList._next(ValidValueList<T> previous, List<T> nextList)
+  ValidValueList._next(ValidValueList<V> previous, List<V> nextList)
       : super.constructNext(previous, nextList);
 
   @override
-  ValidValueList<T> buildNext(List<T> nextList) =>
+  @protected
+  ValidValueList<V> buildNext(List<V> nextList) =>
       ValidValueList._next(this, nextList);
 }

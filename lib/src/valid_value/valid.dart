@@ -1,18 +1,16 @@
-import 'package:valid/src/typedefs.dart';
+import 'package:meta/meta.dart';
 
 import 'valid_primitive_value_type.dart';
+import '../typedefs.dart';
 
 class Valid<V> extends ValidPrimitiveValueType<Valid<V>, V> {
-  factory Valid(
-    V initialValue, [
+  Valid(
+    V? initialValue, [
     Validator<V>? validator,
-  ]) =>
-      Valid._(initialValue, validator);
-
-  Valid._(
-    V initialValue, [
-    Validator<V>? validator,
-  ]) : super.initial(initialValue, validator);
+  ]) : super.initial(
+          initialValue,
+          validator: validator,
+        );
 
   Valid._next(
     Valid<V> previous,
@@ -20,5 +18,6 @@ class Valid<V> extends ValidPrimitiveValueType<Valid<V>, V> {
   ) : super.constructNext(previous, nextValue);
 
   @override
+  @protected
   Valid<V> buildNext(V nextValue) => Valid._next(this, nextValue);
 }

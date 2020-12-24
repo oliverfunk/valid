@@ -1,32 +1,27 @@
 import '../valid_value/valid_value_type.dart';
 import 'valid_list_type.dart';
 
-abstract class ValidValueListType<T extends ValidValueListType<T, M>,
-    M extends ValidValueType<M, dynamic>> extends ValidListType<T, M> {
-  final M validModel;
+abstract class ValidValueListType<T extends ValidValueListType<T, V>, V>
+    extends ValidListType<T, V> {
+  final ValidValueType validator;
 
   ValidValueListType.initial(
-    this.validModel,
-    List initialValidValues,
-  ) : super.initial(
-          initialValidValues.map((i) => validModel.next(i)).toList(),
-          (list) => list.every((i) => i.hasEqualityOfHistory(validModel)),
+    List<V> initialValues, {
+    required this.validator,
+  }) : super.initial(
+          initialValues,
+          validator: (list) => list.every((i) => validator.validate(i)),
         );
 
   ValidValueListType.initialNumberOf(
-    this.validModel,
-    int numberOf,
-  ) : super.initial(
-          List<M>.filled(numberOf, validModel),
-          (list) => list.every((i) => i.hasEqualityOfHistory(validModel)),
+    int numberOf, {
+    required this.validator,
+  }) : super.initial(
+          List<V>.filled(numberOf, validator.value as V),
+          validator: (list) => list.every((i) => validator.validate(i)),
         );
 
-  ValidValueListType.constructNext(T previous, List<M> nextList)
-      : validModel = previous.validModel,
+  ValidValueListType.constructNext(T previous, List<V> nextList)
+      : validator = previous.validator,
         super.constructNext(previous, nextList);
-
-  T nextWithValues(List nextValues) =>
-      next(nextValues.map((i) => validModel.next(i)).toList());
-
-  V valueAt<V>(int index) => internalList[index].value as V;
 }

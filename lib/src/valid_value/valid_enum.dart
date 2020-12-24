@@ -1,20 +1,20 @@
+import 'package:meta/meta.dart';
+
 import 'valid_enum_type.dart';
 
 class ValidEnum<E> extends ValidEnumType<ValidEnum<E>, E> {
-  factory ValidEnum(
-    List<E> enumValues,
-    E initialEnum,
-  ) =>
-      ValidEnum._(enumValues, initialEnum);
-
-  ValidEnum._(
-    List<E> enumValues,
-    E initialEnum,
-  ) : super.initial(enumValues, initialEnum);
+  ValidEnum(
+    E initialEnum, {
+    required List<E> enumValues,
+  }) : super.initial(
+          initialEnum,
+          enumValues: enumValues,
+        );
 
   ValidEnum._next(ValidEnum<E> previous, E nextEnum)
       : super.constructNext(previous, nextEnum);
 
   @override
+  @protected
   ValidEnum<E> buildNext(E nextEnum) => ValidEnum._next(this, nextEnum);
 }
