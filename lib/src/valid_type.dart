@@ -23,7 +23,7 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
         _initialModel = null {
     if (initialValue != null && !validate(initialValue)) {
       ValidLogger.logException(ValidationException(T, initialValue));
-      throw InitialValidationError(T, initialValue);
+      throw InitializationError(T, initialValue);
     }
   }
 
@@ -55,13 +55,13 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
 
   @nonVirtual
   T nextWithFunc(ValueUpdater<V> updater) {
-    if (value == null) throw NullValueError();
+    if (value == null) throw NullValueError(T);
     return next(updater(value!));
   }
 
   @nonVirtual
   T nextFromOther(T other) {
-    if (other.value == null) throw NullValueError();
+    if (other.value == null) throw NullValueError(T);
     if (!shouldBuild(other.value!)) return this as T;
     if (other is! ValueType && !hasEqualityOfHistory(other)) {
       throw EqualityOfHistoryError(this, other);
@@ -82,6 +82,9 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
     throw UpdateError(T, V, update);
   }
 
+  @nonVirtual
+  bool hasEqualityOfHistory(T other) => identical(initial, other.initial);
+
   /// [nextValue] must be valid.
   @protected
   T buildNext(V nextValue);
@@ -90,8 +93,6 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
   T buildFromOther(T nextModel) => nextModel;
 
   bool shouldBuild(V nextValue) => nextValue != value;
-
-  bool hasEqualityOfHistory(T other) => identical(initial, other.initial);
 
   @override
   List<Object?> get props => [value];

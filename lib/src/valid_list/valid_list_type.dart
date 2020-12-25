@@ -40,7 +40,6 @@ abstract class ValidListType<T extends ValidListType<T, V>, V>
     return false;
   }
 
-  //todo:
   @override
   List<List<V>> get props => [List.unmodifiable(_currentList)];
 
