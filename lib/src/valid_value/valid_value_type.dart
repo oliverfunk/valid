@@ -38,8 +38,4 @@ mixin ValueType<T extends ValidValueType<T, V>, V> on ValidValueType<T, V> {
   T buildFromOther(T nextModel) => identical(initial, nextModel.initial)
       ? nextModel
       : buildNext(nextModel.value!);
-
-  // todo: how to parameterize
-  @override
-  bool hasEqualityOfHistory(T other) => other is T;
 }

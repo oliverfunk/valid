@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
+import 'package:valid/src/valid_value/valid_value_type.dart';
 
 import 'errors.dart';
 import 'exceptions.dart';
@@ -62,7 +63,9 @@ abstract class ValidType<T extends ValidType<T, V>, V> extends Equatable {
   T nextFromOther(T other) {
     if (other.value == null) throw NullValueError();
     if (!shouldBuild(other.value!)) return this as T;
-    if (!hasEqualityOfHistory(other)) throw EqualityOfHistoryError(this, other);
+    if (other is! ValueType && !hasEqualityOfHistory(other)) {
+      throw EqualityOfHistoryError(this, other);
+    }
     return buildFromOther(other);
   }
 
